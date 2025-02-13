@@ -25,6 +25,8 @@ const KAMINO_RESERVE_SOL =  new PublicKey(
 const KAMINO_RESERVE_FARM_STATE = new PublicKey(
     "BgMEUzcjkJxEH1PdPkZyv3NbUynwbkPiNJ7X2x7G1JmH");
 
+const KAMINO_SCOPE_PRICES = new PublicKey(
+    "3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C");
 
 
 const seed1Account = SystemProgram.programId;
@@ -62,35 +64,37 @@ export async function kamino_fetch_on_chain() {
         KAMINO_MAINNET
     );
 
-    const IxInitUserMetadataAccount = await program.methods
-        .initUserMetadata(lookupTableAddress)
-        .accounts({
-            owner: wallet.publicKey, // Owner & Fee Payer (Signer)
-            feePayer: wallet.publicKey, // Fee Payer
-            userMetadata: userMetadataPDA, // Writable user metadata account
-            referrerUserMetadata: KAMINO_MAINNET, // No referrer in this case
-            rent: SYSVAR_RENT_PUBKEY, // Rent sysvar
-            systemProgram: SystemProgram.programId // System Program
-        })
-        .instruction();
+    console.log("user Metada PDA: " , userMetadataPDA);
 
-        const blockhashWithContext = await provider.connection.getLatestBlockhash();
+    // const IxInitUserMetadataAccount = await program.methods
+    //     .initUserMetadata(lookupTableAddress)
+    //     .accounts({
+    //         owner: wallet.publicKey, // Owner & Fee Payer (Signer)
+    //         feePayer: wallet.publicKey, // Fee Payer
+    //         userMetadata: userMetadataPDA, // Writable user metadata account
+    //         referrerUserMetadata: KAMINO_MAINNET, // No referrer in this case
+    //         rent: SYSVAR_RENT_PUBKEY, // Rent sysvar
+    //         systemProgram: SystemProgram.programId // System Program
+    //     })
+    //     .instruction();
 
-        const tx = new Transaction({
-            feePayer: provider.wallet.publicKey,
-            blockhash: blockhashWithContext.blockhash,
-            lastValidBlockHeight: blockhashWithContext.lastValidBlockHeight,
-        }).add(IxInitUserMetadataAccount);
+    //     const blockhashWithContext = await provider.connection.getLatestBlockhash();
+
+    //     const tx = new Transaction({
+    //         feePayer: provider.wallet.publicKey,
+    //         blockhash: blockhashWithContext.blockhash,
+    //         lastValidBlockHeight: blockhashWithContext.lastValidBlockHeight,
+    //     }).add(IxInitUserMetadataAccount);
 
 
-        const InitMetasignature = await sendAndConfirmTransaction(
-            provider.connection,
-            tx,
-            [wallet.payer],
-            { skipPreflight: true}
-        )
+    //     const InitMetasignature = await sendAndConfirmTransaction(
+    //         provider.connection,
+    //         tx,
+    //         [wallet.payer],
+    //         { skipPreflight: true}
+    //     )
 
-        console.log("Init User Metadata Tx:", InitMetasignature);
+    //     console.log("Init User Metadata Tx:", InitMetasignature);
 
         // Step2. InitObligation
 
@@ -122,37 +126,37 @@ export async function kamino_fetch_on_chain() {
 
           console.log("Obligation PDA address: ", obligationPDA);
 
-          const IxInitObligation = await program.methods
-          .initObligation(args) // Pass in the instruction arguments
-          .accounts({
-            obligationOwner: wallet.publicKey,
-            feePayer: wallet.publicKey,
-            obligation: obligationPDA,
-            lendingMarket: lendingMarket,
-            seed1Account: seed1Account,
-            seed2Account: seed2Account,
-            ownerUserMetadata: userMetadataPDA,
+        //   const IxInitObligation = await program.methods
+        //   .initObligation(args) // Pass in the instruction arguments
+        //   .accounts({
+        //     obligationOwner: wallet.publicKey,
+        //     feePayer: wallet.publicKey,
+        //     obligation: obligationPDA,
+        //     lendingMarket: lendingMarket,
+        //     seed1Account: seed1Account,
+        //     seed2Account: seed2Account,
+        //     ownerUserMetadata: userMetadataPDA,
      
-          })
-          .instruction();
+        //   })
+        //   .instruction();
 
-        const blockhashWithContext = await provider.connection.getLatestBlockhash();
+        // const blockhashWithContext = await provider.connection.getLatestBlockhash();
 
-        const txInitObligation = new Transaction({
-            feePayer: provider.wallet.publicKey,
-            blockhash: blockhashWithContext.blockhash,
-            lastValidBlockHeight: blockhashWithContext.lastValidBlockHeight,
-        }).add(IxInitObligation);
+        // const txInitObligation = new Transaction({
+        //     feePayer: provider.wallet.publicKey,
+        //     blockhash: blockhashWithContext.blockhash,
+        //     lastValidBlockHeight: blockhashWithContext.lastValidBlockHeight,
+        // }).add(IxInitObligation);
 
 
-        const InitObligationSignature = await sendAndConfirmTransaction(
-            provider.connection,
-            txInitObligation,
-            [wallet.payer],
-            { skipPreflight: true}
-        )
+        // const InitObligationSignature = await sendAndConfirmTransaction(
+        //     provider.connection,
+        //     txInitObligation,
+        //     [wallet.payer],
+        //     { skipPreflight: true}
+        // )
 
-        console.log("Init User Obligation Tx:", InitObligationSignature);
+        // console.log("Init User Obligation Tx:", InitObligationSignature);
 
         // Step 3.  initObligationFarmsForReserve
 
@@ -183,46 +187,86 @@ export async function kamino_fetch_on_chain() {
 
         console.log("userStatePDAofFARM address: ", userStatePDAofFARM);
 
-        const IxInitObligationFarmsForReserve = await program.methods
-            .initObligationFarmsForReserve(mode)
+        // const IxInitObligationFarmsForReserve = await program.methods
+        //     .initObligationFarmsForReserve(mode)
+        //     .accounts({
+        //         payer: wallet.publicKey,
+        //         owner: wallet.publicKey, // Obligation owner (same as before)
+        //         obligation: obligationPDA,
+        //         lendingMarketAuthority: lendingMarketAuthorityPDA,
+        //         reserve: KAMINO_RESERVE_SOL, 
+        //         reserveFarmState: KAMINO_RESERVE_FARM_STATE, // Derive if needed
+        //         obligationFarm: userStatePDAofFARM, // Derive if needed
+        //         lendingMarket: lendingMarket,
+        //         farmsProgram: farmsProgram, 
+        //     })
+        //     .instruction();
+
+        // const blockhashWithContext = await provider.connection.getLatestBlockhash();
+
+        // const TxInitObligationFarmsForReserve = new Transaction({
+        //         feePayer: provider.wallet.publicKey,
+        //         blockhash: blockhashWithContext.blockhash,
+        //         lastValidBlockHeight: blockhashWithContext.lastValidBlockHeight,
+        // }).add(IxInitObligationFarmsForReserve);
+
+
+        // const InitFarmReserveSignature = await sendAndConfirmTransaction(
+        //         provider.connection,
+        //         TxInitObligationFarmsForReserve,
+        //         [wallet.payer],
+        //         { skipPreflight: true}
+        // )
+
+        // console.log("Init Farm Reserve Tx:", InitFarmReserveSignature);
+
+
+        //Step 4. RefreshReserve
+        const ix = await program.methods.refreshReserve()
             .accounts({
-                payer: wallet.publicKey,
-                owner: wallet.publicKey, // Obligation owner (same as before)
+                reserve: KAMINO_RESERVE_SOL,
+                lendingMarket: lendingMarket,
+                pythOracle: KAMINO_MAINNET,
+                switchboardPriceOracle: KAMINO_MAINNET,
+                switchboardTwapOracle: KAMINO_MAINNET,
+                scopePrices: KAMINO_SCOPE_PRICES,
+            })
+            .rpc();
+
+        console.log("Refresh Reserve: ", ix);
+
+        //Step 5. RefreshObligation
+        const txRefreshObligation = await program.methods.refreshObligation()
+            .accounts({
+                lendingMarket: lendingMarket,
+                obligation: obligationPDA,
+            }).rpc();
+
+        console.log("Refresh Obligation: ", txRefreshObligation);
+
+        //Steo 6. RefreshObligationFarmsForReserve
+
+        
+        const txRefreshObligationFarmsForReserve = await program.methods
+            .refreshObligationFarmsForReserve(mode)
+            .accounts({
+                crank: wallet.publicKey,
                 obligation: obligationPDA,
                 lendingMarketAuthority: lendingMarketAuthorityPDA,
-                reserve: KAMINO_RESERVE_SOL, 
-                reserveFarmState: KAMINO_RESERVE_FARM_STATE, // Derive if needed
-                obligationFarm: userStatePDAofFARM, // Derive if needed
+                reserve: KAMINO_RESERVE_SOL,
+                reserveFarmState: KAMINO_RESERVE_FARM_STATE,
+                obligationFarmUserState: userStatePDAofFARM,
                 lendingMarket: lendingMarket,
-                farmsProgram: farmsProgram, 
-            })
-            .instruction();
+                farmsProgram: KAMINO_FARM_MAINNET,
+            }).rpc();
 
-        const blockhashWithContext = await provider.connection.getLatestBlockhash();
-
-        const TxInitObligationFarmsForReserve = new Transaction({
-                feePayer: provider.wallet.publicKey,
-                blockhash: blockhashWithContext.blockhash,
-                lastValidBlockHeight: blockhashWithContext.lastValidBlockHeight,
-        }).add(IxInitObligationFarmsForReserve);
-
-
-        const InitFarmReserveSignature = await sendAndConfirmTransaction(
-                provider.connection,
-                TxInitObligationFarmsForReserve,
-                [wallet.payer],
-                { skipPreflight: true}
-        )
-
-        console.log("Init Farm Reserve Tx:", InitFarmReserveSignature);
-
-
-        //Step 4. 
-
+        console.log("Refresh Obligation Farm For Reserve: ", txRefreshObligationFarmsForReserve);
 
 
         // After work - Close Accounts the reclaim the funds
+        
 
+    
 
 
 
