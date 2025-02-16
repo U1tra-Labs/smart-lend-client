@@ -121,25 +121,24 @@ export async function kamino_fetch_on_chain() {
       console.log("Obligation PDA address: ", obligationPDA);
 
       const IxInitObligation = await program.methods
-      .initObligation(args) // Pass in the instruction arguments
-      .accounts({
-        obligationOwner: wallet.publicKey,
-        feePayer: wallet.publicKey,
-        obligation: obligationPDA,
-        lendingMarket: lendingMarket,
-        seed1Account: seed1Account,
-        seed2Account: seed2Account,
-        ownerUserMetadata: userMetadataPDA,
- 
-      })
-      .instruction();
+        .initObligation(args) // Pass in the instruction arguments
+        .accounts({
+            obligationOwner: wallet.publicKey,
+            feePayer: wallet.publicKey,
+            obligation: obligationPDA,
+            lendingMarket: lendingMarket,
+            seed1Account: seed1Account,
+            seed2Account: seed2Account,
+            ownerUserMetadata: userMetadataPDA,
+    
+        })
+        .instruction();
 
       instructions.push(IxInitObligation);
 
     // Instruction: initObligationFarmsForReserve
     const mode = 0;
     const farmsProgram = KAMINO_FARM_PROGRAM;
-    const obligationFarmKeypair = web3.Keypair.generate();
     
     [lendingMarketAuthorityPDA] = await web3.PublicKey.findProgramAddressSync(
         [
