@@ -26,7 +26,7 @@ export async function marginfi_fetch_on_chain() {
     const provider = new AnchorProvider(connection, wallet, { commitment: "confirmed" });
     const program = new Program(idl, PROGRAM_ID, provider);
 
-
+    
     //Step1. Initialize the marginfi account
     const MY_MARGIN_ACCOUNT = new PublicKey("5fHx5arkPyNmZFYk7kWiazrAFn7jzhQxTXkwHvEnQra");
     const marginfiAccountKeypair = Keypair.generate();
