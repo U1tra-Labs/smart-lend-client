@@ -27,8 +27,6 @@ export async function drfit_fetch_on_chain() {
 
     const program = new Program(idl, PROGRAM_ID, provider);
 
-    //console.log("Program ID:", program.programId.toBase58());
-
     //Step1. Initialize the user account
 
     // Find PDA for User Account
@@ -38,15 +36,14 @@ export async function drfit_fetch_on_chain() {
         program.programId
     );
 
-    console.log("User Stats PDA:", userStatsPDA.toBase58());
-
     const [userPDA] = PublicKey.findProgramAddressSync(
         [Buffer.from("user"), wallet.publicKey.toBuffer(), new BN(0).toArrayLike(Buffer, "le", 2)],
         program.programId
     );
 
     //find on the brower, easy to find
-    const driftStatePDA = new PublicKey("5zpq7DvB6UdFFvpmBPspGPNfUGoBRRCE2HHg5u3gxcsN");
+    const DRIFT_STATE = new PublicKey("5zpq7DvB6UdFFvpmBPspGPNfUGoBRRCE2HHg5u3gxcsN");
+    const DRIFT_VAULT = new PublicKey("JCNCMFXo5M5qwUPg2Utu1u6YWp3MbygxqBsBeXXJfrw");
 
 
     console.log(`User PDA: ${userPDA.toBase58()}`);
@@ -54,23 +51,23 @@ export async function drfit_fetch_on_chain() {
 
     const nameBuffer = Buffer.alloc(32);
 
-    const tx_user_state = await program.methods
-        .initializeUserStats()
-        .accounts({
-            userStats: userStatsPDA,
-            state: driftStatePDA,
-            authority: wallet.publicKey,
-            payer: wallet.publicKey,
-            rent: web3.SYSVAR_RENT_PUBKEY,
-            systemProgram: web3.SystemProgram.programId,
-        })
-        .rpc();
+    // const tx_user_state = await program.methods
+    //     .initializeUserStats()
+    //     .accounts({
+    //         userStats: userStatsPDA,
+    //         state: DRIFT_STATE,
+    //         authority: wallet.publicKey,
+    //         payer: wallet.publicKey,
+    //         rent: web3.SYSVAR_RENT_PUBKEY,
+    //         systemProgram: web3.SystemProgram.programId,
+    //     })
+    //     .rpc();
 
     // const tx_init_user = await program.methods.initializeUser(new BN(0), nameBuffer)
     //     .accounts({
     //         user: userPDA,
     //         userStats: userStatsPDA,
-    //         state: driftStatePDA,
+    //         state: DRIFT_STATE,
     //         authority: signer,
     //         payer: signer,
     //     }).rpc({ commitment: "confirmed" });
@@ -136,28 +133,52 @@ export async function drfit_fetch_on_chain() {
     const spotMarketAccount = new PublicKey("6gMq3mRCKf8aP3ttTyYhuijVZ2LGi14oDsBbkgubfLB3"); // Confirm this is correct!
 
 
-    const tx_deposit = await program.methods
-        .deposit(
+    // const tx_deposit = await program.methods
+    //     .deposit(
+    //         new BN(market_index),
+    //         new BN(amount * 1000000),
+    //         reduceOnly
+    //     )
+    // .accounts({
+    //     state: DRIFT_STATE,
+    //     user: userPDA,
+    //     userStats: userStatsPDA,
+    //     authority: wallet.publicKey,
+    //     spotMarketVault: spotMarketVaultPDA,
+    //     userTokenAccount: userUSDCAccount,
+	// 	tokenProgram: TOKEN_PROGRAM_ID,
+    // })
+    // .remainingAccounts([
+    //     { pubkey: oracleReceiver, isSigner: false, isWritable: false },
+    //     { pubkey: spotMarketAccount, isSigner: false, isWritable: true }, // This might be writable
+    // ])
+    // .rpc({commitment: "confirmed"});
+
+    // console.log("Deposited Transaction:", tx_deposit);  
+
+
+    const tx_withdraw = await program.methods
+        .withdraw(
             new BN(market_index),
             new BN(amount * 1000000),
             reduceOnly
-        )
-    .accounts({
-        state: driftStatePDA,
-        user: userPDA,
-        userStats: userStatsPDA,
-        authority: wallet.publicKey,
-        spotMarketVault: spotMarketVaultPDA,
-        userTokenAccount: userUSDCAccount,
-		tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .remainingAccounts([
+        ).accounts({
+            state: DRIFT_STATE,
+            user: userPDA,
+            userStats: userStatsPDA,
+            authority: wallet.publicKey,
+            spotMarketVault: spotMarketVaultPDA,
+            driftSigner: DRIFT_VAULT,
+            userTokenAccount: userUSDCAccount,
+            tokenProgram: TOKEN_PROGRAM_ID,
+        })  
+        .remainingAccounts([
         { pubkey: oracleReceiver, isSigner: false, isWritable: false },
         { pubkey: spotMarketAccount, isSigner: false, isWritable: true }, // This might be writable
-    ])
-    .rpc({commitment: "confirmed"});
+        ]).
+        rpc();
 
-    console.log("Deposited Transaction:", tx_deposit);  
+    console.log("Withdraw Transaction:", tx_withdraw);
 
 }
 
